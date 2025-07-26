@@ -3,11 +3,11 @@ import { assets } from '../assets/assets';
 import { useAppContext } from '../context/AppContext.jsx';
 
 const ProductCard = ({ product }) => {
-  const [count, setCount] = React.useState(0);
+ 
   const { currency, navigate, addToCart, removeFromCart, cartItems } = useAppContext();
 
   return product && (
-    <div className="border border-gray-300 rounded-xl p-4 bg-white w-full h-full flex flex-col justify-between">
+    <div onClick={()=>{navigate(`/products/${product.category.toLowerCase()}/${product._id}`) ;scrollTo(0,0)}} className="border border-gray-300 rounded-xl p-4 bg-white w-full h-full flex flex-col justify-between">
       {/* Product Image */}
       <div className="group cursor-pointer flex items-center justify-center px-2">
         <img
