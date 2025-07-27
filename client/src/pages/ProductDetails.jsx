@@ -15,7 +15,7 @@ const ProductDetails = () => {
 
     useEffect(() => {
         if (products.length > 0) {
-            let productsCopy = products.slice();
+            let productsCopy = products.slice(); //shallow copy of products array is created
             productsCopy = productsCopy.filter((item) => product.category === item.category)
             setRelatedProducts(productsCopy.slice(0, 5))
         }
@@ -23,7 +23,7 @@ const ProductDetails = () => {
 
 
     useEffect(() => {
-        setThumbnail(product?.image[0] ? product.image[0] : null)
+        setThumbnail(product?.image[0] ? product.image[0] : null)//optinal chaining
     }, [product])
 
 
