@@ -8,6 +8,7 @@ cartItems:{type:Object , default:{} },
 },{minimize:false})
 
 
-const User =  mongoose.models.user || mongoose.model('user' , UserSchema);
+// Prevent model overwrite errors in development
+const User =  mongoose.models.User || mongoose.model('User' , UserSchema);
 
 export default User;

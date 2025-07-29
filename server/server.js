@@ -3,6 +3,7 @@ import 'dotenv/config.js'
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import connectDb from './configs/db.js';
+import userRouter from './routes/userRoutes.js';
 
 const app =express();
 const port = process.env.PORT || 4000;
@@ -22,6 +23,7 @@ app.use(cors({origin:allowedOrigins , Credentials:true}));
 app.get("/" , (req,res)=>{
     res.send("API is working!!")
 })
+app.use("/api/user" , userRouter);
 
 app.listen(port ,()=>{
     console.log(`App is listening on ${port}`);
