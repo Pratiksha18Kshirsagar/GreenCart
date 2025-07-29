@@ -11,7 +11,7 @@ export const AppContext = createContext();
 
 // 2️⃣ Create a provider component
 export const AppContextProvider = ({ children }) => {
-    const currency = import.meta.VITE_CURRENCY;
+    const currency = import.meta.env.VITE_CURRENCY;
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [isSeller, setIsSeller] = useState(false);

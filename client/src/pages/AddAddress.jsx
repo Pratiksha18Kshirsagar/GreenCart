@@ -29,7 +29,7 @@ const AddAddress = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setAddress((prevAddress) => ({
-            ...prevAddressAddress,
+            ...prevAddress,
             [name]: value,
         }))
     }
