@@ -1,27 +1,39 @@
-import React from 'react'
+import { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
+import toast from 'react-hot-toast';
 
 const Login = () => {
-    const [state, setState] = React.useState("login");
-    const [name, setName] = React.useState("");
-    const [email, setEmail] = React.useState("");
-    const [password, setPassword] = React.useState("");
-    const {setShowUserLogin , setUser} =useAppContext();
+    const [state, setState] = useState("login");
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
 
-  const onSubmitHandler = async(e)=>{
-    e.preventDefault();
-    setUser({
-        email:"mona@gmail.com",
-        password:"123456"
-    })
-    setShowUserLogin(false);
-  }
+    const { setShowUserLogin, setUser, axios , navigate } = useAppContext();
+
+    const onSubmitHandler = async (e) => {
+        try {
+            e.preventDefault();
+            const { data } = await axios.post(`/api/user/${state}` , {name,email,password})
+            
+            if (data.success) {
+                navigate("/")
+                setUser(data.user)
+                setShowUserLogin(false);
+                // toast.success(data.message)
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
+
+    }
 
 
     return (
-        <div onClick={()=>setShowUserLogin(false)} className='fixed top-0 bottom-0 left-0 right-0 z-30 flex items-center text-sm text-gray-600 bg-black/50'> 
+        <div onClick={() => setShowUserLogin(false)} className='fixed top-0 bottom-0 left-0 right-0 z-30 flex items-center text-sm text-gray-600 bg-black/50'>
 
-            <form onSubmit={onSubmitHandler} onClick={(e)=>e.stopPropagation()} className="flex flex-col gap-4 m-auto items-start p-8 py-12 w-80 sm:w-[352px] rounded-lg shadow-xl border border-gray-200 bg-white">
+            <form onSubmit={onSubmitHandler} onClick={(e) => e.stopPropagation()} className="flex flex-col gap-4 m-auto items-start p-8 py-12 w-80 sm:w-[352px] rounded-lg shadow-xl border border-gray-200 bg-white">
                 <p className="text-2xl font-medium m-auto">
                     <span className="text-primary">User</span> {state === "login" ? "Login" : "Sign Up"}
                 </p>

@@ -1,30 +1,81 @@
 import { useState, useEffect } from 'react'
 import { useAppContext } from '../context/AppContext'
 import { assets, dummyAddress } from '../assets/assets';
+import toast from 'react-hot-toast';
 
 const Cart = () => {
 
-    const { products, currency, removeFromCart, updateCartItem, navigate, getCartCount, getCartAmount, cartItems } = useAppContext();
+    const { products, currency, removeFromCart, updateCartItem, navigate, getCartCount, getCartAmount, cartItems, axios, user, setCartItems } = useAppContext();
 
     const [cartArray, setCartArray] = useState([]);  // Stores enriched product data (product info + quantity).
-    const [addresses, setAddresses] = useState(dummyAddress); //Dummy addresses for delivery.
+    const [addresses, setAddresses] = useState([]); //Dummy addresses for delivery.
     const [showAddress, setShowAddress] = useState(false) //Toggles address dropdown
-    const [selectedAddress, setSelectedAddress] = useState(dummyAddress[0]); //Stores the selected delivery address.
+    const [selectedAddress, setSelectedAddress] = useState(null); //Stores the selected delivery address.
     const [paymentOption, setPaymentOption] = useState("COD"); //COD or Online.
 
     const getCart = () => {
-        let temArray = [];
+        let tempArray = [];
         for (const key in cartItems) {
             const product = products.find((item) => item._id === key)
             product.quantity = cartItems[key];
-            temArray.push(product);
+            tempArray.push(product);
         }
-        setCartArray(temArray);
+        setCartArray(tempArray);
+    }
+
+
+    const getUserAddress = async () => {
+        try {
+            const { data } = await axios.get('/api/address/get')
+            if (data.success) {
+                setAddresses(data.addresses)
+                if (data.addresses.length > 0) {
+                    setSelectedAddress(data.addresses[0])
+                } else {
+                    toast.error(data.message)
+                }
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
     }
 
 
     const placeOrder = async () => {
-
+        try {
+            if (!selectedAddress) {
+                return toast.error("Please select an address")
+            }
+            //place order with COD
+            if (paymentOption === 'COD') {
+                const { data } = await axios.post('/api/order/cod', {
+                    userId: user._id,
+                    items: cartArray.map(item => ({ product: item._id, quantity: item.quantity })),
+                    address: selectedAddress._id
+                })
+                if (data.success) {
+                    toast.success(data.message)
+                    setCartItems({})
+                    navigate('/my-orders')
+                } else {
+                    toast.error(data.message)
+                }
+            }else{
+               //place order with stripe
+                 const { data } = await axios.post('/api/order/stripe', {
+                    userId: user._id,
+                    items: cartArray.map(item => ({ product: item._id, quantity: item.quantity })),
+                    address: selectedAddress._id
+                })
+                if (data.success) {
+                   window.location.replace(data.url)
+                } else {
+                    toast.error(data.message)
+                }
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
     }
 
     useEffect(() => {
@@ -34,7 +85,11 @@ const Cart = () => {
 
     }, [products, cartItems])
 
-
+    useEffect(() => {
+        if (user) {
+            getUserAddress();
+        }
+    }, [user])
 
     return products.length > 0 && cartItems ? (
         <div className="flex flex-col md:flex-row mt-16">
@@ -61,8 +116,8 @@ const Cart = () => {
                                     <p>Weight: <span>{product.weight || "N/A"}</span></p>
                                     <div className='flex items-center'>
                                         <p>Qty:</p>
-                                        <select onChange={e=>updateCartItem(product._id , Number(e.target.value))} value={cartItems[product._id]}  className='outline-none'>
-                                            {Array(cartItems[product._id] > 9 ? cartItems[product._id]  : 9).fill('').map((_, index) => (
+                                        <select onChange={e => updateCartItem(product._id, Number(e.target.value))} value={cartItems[product._id]} className='outline-none'>
+                                            {Array(cartItems[product._id] > 9 ? cartItems[product._id] : 9).fill('').map((_, index) => (
                                                 <option key={index} value={index + 1}>{index + 1}</option>
                                             ))}
                                         </select>
