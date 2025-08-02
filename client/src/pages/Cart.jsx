@@ -46,6 +46,7 @@ const Cart = () => {
             if (!selectedAddress) {
                 return toast.error("Please select an address")
             }
+
             //place order with COD
             if (paymentOption === 'COD') {
                 const { data } = await axios.post('/api/order/cod', {
@@ -60,8 +61,10 @@ const Cart = () => {
                 } else {
                     toast.error(data.message)
                 }
+                
             }else{
                //place order with stripe
+               console.log("stripe")
                  const { data } = await axios.post('/api/order/stripe', {
                     userId: user._id,
                     items: cartArray.map(item => ({ product: item._id, quantity: item.quantity })),

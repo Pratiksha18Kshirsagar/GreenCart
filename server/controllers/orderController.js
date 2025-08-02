@@ -47,6 +47,8 @@ export const placeOrderStripe = async (req, res) => {
         if (!address || items.length === 0) {
             return res.json({ success: false, message: "Invalid Data" })
         }
+
+
         let productData = [];
 
         //calculate Amount using items
@@ -56,12 +58,13 @@ export const placeOrderStripe = async (req, res) => {
                 name: product.name,
                 price: product.offerPrice,
                 quantity: item.quantity,
-            })
+            });
             return (await acc) + product.offerPrice * item.quantity;
         }, 0)
 
         //add tax charges(2%)
         amount += Math.floor(amount * 0.02);
+
         const order = await Order.create({
             userId,
             items,
@@ -69,6 +72,7 @@ export const placeOrderStripe = async (req, res) => {
             address,
             paymentType: "Online",
         });
+        console.log("onlineeee")
 
         //Stripe GateWay Initialize
         const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
@@ -100,6 +104,8 @@ export const placeOrderStripe = async (req, res) => {
             }
         })
 
+console.log("session")
+
         return res.json({ success: true, url: session.url })
     } catch (error) {
         console.log(error.message);
@@ -108,16 +114,19 @@ export const placeOrderStripe = async (req, res) => {
 }
 
 
-//Stripe webhooks to verify payment actions
+//Stripe webhooks to verify payment actions :/stripe
 export const stripeWebhooks = async (req, res) => {
     //stripe gateway initializes
     const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
-    const sig = requestAnimationFrame.headers['stripe-signature'];
+    const sig = req.headers['stripe-signature'];
     let event;
     try {
-        event = stripeInstance.webhooks.constructEvent(request.body, sig, process.env.STRIPE_WEBHOOK_SECRET)
+        event = stripeInstance.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET)
+
+        console.log("webhooks")
+
     } catch (error) {
-        response.status(400).send(`webhook Error:${error.message}`)
+        res.status(400).send(`webhook Error:${error.message}`)
     }
 
     //Handel the event
@@ -128,15 +137,15 @@ export const stripeWebhooks = async (req, res) => {
             //Getting session Metadata 
             const session = await stripeInstance.checkout.sessions.list({
                 payment_intent: paymentIntentId,
-
             });
+
             const { orderId, userId } = session.data[0].metadata;
 
 
-            //mark payment as failed
+            //mark payment as paid
             await Order.findByIdAndUpdate(orderId, { isPaid: true })
             //clear user cart
-            await User.findByIdAndUpdate(userId, { cartItems: {} });
+            await User.findByIdAndUpdate(userId, { cartItems: {}});
             break;
 
         }
@@ -148,15 +157,15 @@ export const stripeWebhooks = async (req, res) => {
             const session = await stripeInstance.checkout.sessions.list({
                 payment_intent: paymentIntentId,
             });
-            const { orderId, userId } = session.data[0].metadata;
+            const { orderId} = session.data[0].metadata;
             await Order.findByIdAndDelete(orderId);
-            break;
+            break; 
         }
         default:
             console.error(`Unhandled event type ${event.type}`)
             break;
     }
-    response.json({recieved:true})
+    res.json({recieved:true})
 }
 
 
