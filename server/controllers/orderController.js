@@ -74,7 +74,7 @@ export const placeOrderStripe = async (req, res) => {
         });
         console.log("onlineeee")
 
-        //Stripe GateWay Initialize
+        //Stripe GateWay Initialize [This initializes a new Stripe object using your secret key]
         const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
 
         //create line items for stripe
